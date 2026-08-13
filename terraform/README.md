@@ -20,33 +20,21 @@ AWS-аккаунт (например, если случайно остался �
 
 ## 1. Учётные данные для аккаунта 780770254140
 
-В этот аккаунт заходят через роль `OrganizationAccountAccessRole` из
-management-аккаунта организации (это видно по «Currently active as
-OrganizationAccountAccessRole» в консоли). Соответственно, креды нужно
-получать через assume-role из учётки, у которой есть права на организацию:
+Всё лежит в одном именованном профиле `PIKA_NOWA` (`~/.aws/config` +
+`~/.aws/credentials`) — заполните его своими ключами:
 
 ```bash
-# вариант A: assume-role напрямую
-aws sts assume-role \
-  --role-arn arn:aws:iam::780770254140:role/OrganizationAccountAccessRole \
-  --role-session-name terraform-deploy \
-  --profile <ваш-management-профиль>
-# экспортировать AccessKeyId/SecretAccessKey/SessionToken из ответа в переменные окружения
-# (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_SESSION_TOKEN)
-
-# вариант B: описать это как профиль в ~/.aws/config, чтобы aws cli делал assume сам
-# [profile pika-nowa]
-# role_arn = arn:aws:iam::780770254140:role/OrganizationAccountAccessRole
-# source_profile = <ваш-management-профиль>
-# region = eu-central-1
-aws configure --profile <ваш-management-профиль>   # если ещё не настроен базовый профиль
-aws sts get-caller-identity --profile pika-nowa
+aws configure --profile PIKA_NOWA
+# Access Key ID / Secret Access Key — из IAM консоли аккаунта 780770254140
+# Default region: eu-central-1
+# Default output format: json
 ```
 
-Проверить, что креды бьют в нужный аккаунт:
+Проверить, что креды бьют в нужный аккаунт, удобно скриптом
+[check-account.sh](check-account.sh) — см. ниже, либо вручную:
 
 ```bash
-aws sts get-caller-identity --profile pika-nowa
+aws sts get-caller-identity --profile PIKA_NOWA
 # "Account" в выводе должен быть 780770254140
 ```
 
@@ -63,8 +51,8 @@ npm run build   # создаёт ../dist, который terraform загруз�
 ```bash
 cd terraform
 terraform init
-terraform plan  -var="aws_profile=pika-nowa" -var="bucket_name=polysvit-eu-landing"
-terraform apply -var="aws_profile=pika-nowa" -var="bucket_name=polysvit-eu-landing"
+terraform plan  -var="aws_profile=PIKA_NOWA" -var="bucket_name=polysvit-eu-landing"
+terraform apply -var="aws_profile=PIKA_NOWA" -var="bucket_name=polysvit-eu-landing"
 ```
 
 Если `bucket_name` не задать, будет использовано имя
@@ -74,7 +62,7 @@ terraform apply -var="aws_profile=pika-nowa" -var="bucket_name=polysvit-eu-landi
 
 ```hcl
 # terraform/terraform.tfvars
-aws_profile = "pika-nowa"
+aws_profile = "PIKA_NOWA"
 bucket_name = "polysvit-eu-landing"
 ```
 
@@ -88,7 +76,7 @@ Terraform отслеживает содержимое каждого файла 
 
 ```bash
 npm run build
-terraform apply -var="aws_profile=pika-nowa" -var="bucket_name=polysvit-eu-landing"
+terraform apply -var="aws_profile=PIKA_NOWA" -var="bucket_name=polysvit-eu-landing"
 ```
 
 — перезальются только изменившиеся файлы.

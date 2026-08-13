@@ -14,9 +14,9 @@ variable "aws_account_id" {
 }
 
 variable "aws_profile" {
-  description = "Named AWS CLI profile/SSO profile to use for authentication. Leave empty to use the default credential chain (env vars, SSO env, instance role, etc.)."
+  description = "Named AWS CLI profile to use for authentication. Leave empty to fall back to the default credential chain (AWS_PROFILE env var, env access keys, instance role, etc.)."
   type        = string
-  default     = ""
+  default     = "PIKA_NOWA"
 }
 
 variable "bucket_name" {
