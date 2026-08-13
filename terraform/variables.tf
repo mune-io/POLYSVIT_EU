@@ -10,7 +10,7 @@ variable "aws_region" {
 variable "aws_account_id" {
   description = "AWS account ID this stack must be deployed into (safety guard)."
   type        = string
-  default     = "267965637906" # POLYSVIT_EU
+  default     = "780770254140" # PIKA_NOWA (target account as of the last change)
 }
 
 variable "aws_profile" {
