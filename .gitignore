@@ -21,6 +21,7 @@ terraform/*.tfstate
 terraform/*.tfstate.*
 terraform/*.tfvars
 terraform/crash.log
+terraform/lambda/*.zip
 
 # Editor directories and files
 .vscode/*

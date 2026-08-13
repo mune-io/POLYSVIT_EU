@@ -102,7 +102,9 @@ export const translations = {
         email: 'Adres e-mail',
         message: 'Wiadomość',
         submit: 'Wyślij wiadomość',
+        sending: 'Wysyłanie…',
         thanks: 'Dziękujemy! Skontaktujemy się wkrótce.',
+        error: 'Nie udało się wysłać wiadomości. Spróbuj ponownie lub zadzwoń.',
       },
     },
     footer: {
@@ -207,7 +209,9 @@ export const translations = {
         email: 'Email address',
         message: 'Message',
         submit: 'Send message',
+        sending: 'Sending…',
         thanks: "Thank you! We'll get back to you shortly.",
+        error: 'Could not send the message. Please try again or call us.',
       },
     },
     footer: {
@@ -312,7 +316,9 @@ export const translations = {
         email: 'Электронная почта',
         message: 'Сообщение',
         submit: 'Отправить сообщение',
+        sending: 'Отправка…',
         thanks: 'Спасибо! Мы свяжемся с вами в ближайшее время.',
+        error: 'Не удалось отправить сообщение. Попробуйте ещё раз или позвоните нам.',
       },
     },
     footer: {

@@ -81,6 +81,48 @@ terraform apply -var="aws_profile=PIKA_NOWA" -var="bucket_name=polysvit-eu-landi
 
 — перезальются только изменившиеся файлы.
 
+## Форма обратной связи
+
+Раздел «Kontakt» на лендинге шлёт `POST` на публичный **API Gateway (HTTP
+API) → Lambda** ([mail.tf](mail.tf), код — [lambda/contact-form.mjs](lambda/contact-form.mjs)),
+который дописывает каждое сообщение в `mail.txt` в **отдельном приватном
+бакете** `<bucket_name>-mail` (не в бакете сайта — иначе файл с чужими email
+был бы публично скачиваем).
+
+Изначально стояла более простая связка — публичный **Lambda Function URL**
+(`authorization_type = "NONE"`). Технически всё было настроено верно
+(resource policy проверена через `aws lambda get-policy`), но этот
+AWS-аккаунт стабильно возвращал `403 Forbidden` на анонимные вызовы Function
+URL — похоже на организационный guardrail именно против публичных Function
+URL (у используемого IAM-пользователя нет `organizations:ListPolicies`,
+чтобы подтвердить). Публичные S3-бакеты в этом же аккаунте при этом работают
+без проблем. Переключение на API Gateway решило проблему: вызывающая
+Lambda сторона — сервис-принципал `apigateway.amazonaws.com`, а не
+анонимный интернет, и под этот guardrail не попадает.
+
+Фронтенд узнаёт актуальный URL эндпоинта из `config.json`, который Terraform
+сам кладёт в бакет сайта после создания API Gateway (`aws_s3_object.runtime_config`
+в mail.tf) — пересобирать фронтенд при каждом `terraform apply` не нужно.
+
+Прочитать накопленные сообщения:
+
+```bash
+aws s3 cp s3://polysvit-eu-780770254140-mail/mail.txt - --profile PIKA_NOWA
+```
+
+**Важно про эту форму:**
+- Эндпоинт публичный и без авторизации/CAPTCHA/rate-limit — сделано
+  намеренно просто («тупо сохраняет»). Есть только базовая валидация
+  (обязательные поля, формат email, ограничение длины). Если начнётся спам —
+  добавить honeypot-поле или hCaptcha/reCAPTCHA на фронте плюс проверку в
+  Lambda.
+- `mail.txt` обновляется по схеме read-modify-write, так что при двух
+  одновременных отправках теоретически возможна гонка — на этот случай на
+  бакете включён S3 versioning (`aws_s3_bucket_versioning.mail`), ничего не
+  теряется безвозвратно (`aws s3api list-object-versions`).
+- Это не email-рассылка — сообщения только копятся в S3, письма на почту не
+  уходят. При желании можно навесить на Lambda `ses:SendEmail`, скажите — добавлю.
+
 ## Дальше (не входит в этот стек)
 
 - **HTTPS + собственный домен polysvit.eu**: добавить CloudFront

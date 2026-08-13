@@ -1,22 +1,58 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLanguage } from '../i18n/LanguageContext'
 import { company } from '../company'
 import { PinIcon, PhoneIcon } from './icons'
 
+// Populated by Terraform after `terraform apply` (see terraform/mail.tf,
+// resource aws_s3_object.runtime_config) — decouples the Lambda Function
+// URL (only known once the infra exists) from this pre-built JS bundle.
+async function getContactEndpoint() {
+  try {
+    const res = await fetch('/config.json', { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.contactEndpoint || null
+  } catch {
+    return null
+  }
+}
+
 export default function Contact() {
   const { t } = useLanguage()
   const { contact } = t
-  const [sent, setSent] = useState(false)
+  const [status, setStatus] = useState('idle') // idle | sending | sent | error
   const [values, setValues] = useState({ name: '', email: '', message: '' })
+  const [endpoint, setEndpoint] = useState(null)
+
+  useEffect(() => {
+    getContactEndpoint().then(setEndpoint)
+  }, [])
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setValues((v) => ({ ...v, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setSent(true)
+    if (!endpoint) {
+      setStatus('error')
+      return
+    }
+
+    setStatus('sending')
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      })
+      if (!res.ok) throw new Error('request failed')
+      setStatus('sent')
+      setValues({ name: '', email: '', message: '' })
+    } catch {
+      setStatus('error')
+    }
   }
 
   return (
@@ -69,6 +105,7 @@ export default function Contact() {
                 type="text"
                 name="name"
                 required
+                maxLength={200}
                 value={values.name}
                 onChange={handleChange}
               />
@@ -79,6 +116,7 @@ export default function Contact() {
                 type="email"
                 name="email"
                 required
+                maxLength={200}
                 value={values.email}
                 onChange={handleChange}
               />
@@ -89,14 +127,16 @@ export default function Contact() {
                 name="message"
                 rows={4}
                 required
+                maxLength={5000}
                 value={values.message}
                 onChange={handleChange}
               />
             </label>
-            <button type="submit" className="btn btn-primary">
-              {contact.form.submit}
+            <button type="submit" className="btn btn-primary" disabled={status === 'sending'}>
+              {status === 'sending' ? contact.form.sending : contact.form.submit}
             </button>
-            {sent && <p className="form-thanks">{contact.form.thanks}</p>}
+            {status === 'sent' && <p className="form-thanks">{contact.form.thanks}</p>}
+            {status === 'error' && <p className="form-error">{contact.form.error}</p>}
           </form>
         </div>
       </div>

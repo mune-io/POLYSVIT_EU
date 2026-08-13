@@ -548,6 +548,17 @@
   color: #157a4a;
 }
 
+.form-error {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #b42318;
+}
+
+.contact-form button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 /* ---------- Footer ---------- */
 
 .site-footer {

@@ -17,3 +17,13 @@ output "website_domain" {
   description = "S3 website domain, useful as the origin/target for a future CloudFront distribution or DNS record."
   value       = aws_s3_bucket_website_configuration.site.website_domain
 }
+
+output "mail_bucket" {
+  description = "Private S3 bucket holding mail.txt (contact-form submissions)."
+  value       = aws_s3_bucket.mail.id
+}
+
+output "contact_form_endpoint" {
+  description = "Public API Gateway endpoint the contact form POSTs to."
+  value       = aws_apigatewayv2_stage.default.invoke_url
+}

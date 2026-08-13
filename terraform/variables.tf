@@ -36,3 +36,9 @@ variable "site_dist_dir" {
   type        = string
   default     = "../dist"
 }
+
+variable "mail_object_key" {
+  description = "Key of the plain-text file (in the private mail bucket) that contact-form submissions get appended to."
+  type        = string
+  default     = "mail.txt"
+}
